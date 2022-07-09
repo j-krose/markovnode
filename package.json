@@ -1,0 +1,16 @@
+{
+  "name": "markovnode",
+  "version": "1.0.0",
+  "description": "MARKOV CHAIN NODE SERVER",
+  "main": "index.js",
+  "scripts": {
+    "test": "ping"
+  },
+  "author": "FractalDragon",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.18.1",
+    "fs": "^0.0.1-security",
+    "n-readlines": "^1.0.1"
+  }
+}
