@@ -20,7 +20,7 @@ app.get('/', (req, res) => {        //get requests to the root ("/") will route 
   //the .sendFile method needs the absolute path to the file, see: https://expressjs.com/en/4x/api.html#res.sendFile
 });
 
-const env = process.argv[2] || 'dev';
+const env = process.argv[2] || 'prod';
 const is_prod = (env == 'prod');
 
 // ---- Utilities
