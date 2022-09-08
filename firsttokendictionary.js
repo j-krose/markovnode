@@ -37,11 +37,18 @@ class FirstTokenDictionary
 
   buildRandom()
   {
+    let str = ''
     let index = randomInt(this.songlist.length)
+    let nSongs = 0
     while (true)
     {
+      nSongs++
+      if (nSongs > 5)
+      {
+        break
+      }
       const song = this.songlist[index][FirstTokenDictionary.SONG_KEY]
-      console.log(song)
+      str += `${song}|`
       const splitsong = this.splitSong(song)
       const songend = splitsong[splitsong.length - 1]
 
@@ -49,7 +56,13 @@ class FirstTokenDictionary
       {
         const choices = this.songstarttosongs.get(songend)
         const choice = randomInt(choices.length)
-        index = choices[choice]
+        let nextIndex = choices[choice]
+        if (choices.length === 1 && index === nextIndex)
+        {
+          // dead end
+          break
+        }
+        index = nextIndex
         // next loop
       }
       else
@@ -57,8 +70,18 @@ class FirstTokenDictionary
         break
       }
     }
-  }
 
+    if (nSongs == 1)
+    {
+      // try again
+      return this.buildRandom()
+    }
+    else
+    {
+      str = str.slice(0, -1) // remove trailing space
+      return str
+    }
+  }
 }
 
 module.exports = FirstTokenDictionary

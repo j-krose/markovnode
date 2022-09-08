@@ -4,25 +4,24 @@
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Guess Again</title>
-        
+
         <script type="text/javascript">
-	        
+
 	        function new_tagline() {
-	        
+
 	        	document.getElementById("content").innerHTML='<object type="text/html" data="http://localhost:5000/randomtagline" ></object>';
-	        
+
 	        }
-	        
+
 	    </script>
-        
+
     </head>
     <body>
-	            
+
         <div id="content"></div>
-        
-        <!-- Also put some kind of system in place for robots.txt to tell google to go to /random but say "Going through google is cheating" -->
+
         <button onClick="new_tagline();">Reload</button>
-        
+
     </body>
 </html>
 

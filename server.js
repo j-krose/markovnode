@@ -4,7 +4,9 @@
 const Dictionary = require('./dictionary.js')
 const FirstTokenDictionary = require('./firsttokendictionary.js')
 
+const axios = require('axios');
 const express = require('express'); //Import the express dependency
+const fs = require('fs');
 const nReadlines = require('n-readlines');
 
 const port = process.env.PORT || 5000;                  //Save the port number where your server will be listening
@@ -24,42 +26,82 @@ const env = process.argv[2] || 'prod';
 const is_prod = (env == 'prod');
 
 // ---- Utilities
-function scanLines(file, perLine)
+function scanString(str, perLine)
 {
-  console.log('Scanning ' + file)
-  const data = new nReadlines(file);
-
-  let line;
-  while (line = data.next())
+  const data = str.split(/\r?\n/);
+  for (const line of data)
   {
     perLine(line)
   }
-  console.log('Finished scanning ' + file)
+}
+
+function scanLines(fileName, perLine)
+{
+  const fileLocation = `data/${fileName}`
+  if (fs.existsSync(fileLocation))
+  {
+    console.log(`Parsing local ${fileLocation}`)
+    fs.readFile(fileLocation, 'utf8', (err, data) => {
+      if (err)
+      {
+        console.error(`Error reading ${fileLocation}: ${err}`);
+      }
+      else
+      {
+        scanString(data, perLine)
+        console.log(`Finished parsing local ${fileLocation}`)
+      }
+    });
+  }
+  else
+  {
+    // Need to fetch from remote
+    const url = `http://designer-speak-data.s3-website-us-east-1.amazonaws.com/${fileName}`
+    console.log(`Parsing remote ${url}`)
+    axios
+      .get(url)
+      .then(res => {
+        // Write the file so that we do not need to fetch it next time
+        const str = res.data
+        fs.writeFile(fileLocation, str, (err) =>
+        {
+          if (err)
+          {
+            console.error(`Error saving ${fileName}: ${err}`);
+          }
+        });
+
+        scanString(str, perLine)
+        console.log(`Finished parsing remote ${url}`)
+      })
+      .catch(error => {
+        console.error(`Error getting ${url}: ${error}`);
+      });
+  }
 }
 
 function exposeStringEndpoint(endpoint, stringFunction)
 {
   app.get(endpoint, (req, res) => {
-    res.send(stringFunction())
+    const str = stringFunction()
+    console.log(`${endpoint}: ${str}`)
+    res.send(str)
   })
 }
+// ----
 
 // -- /randombio
-if (!is_prod) // too much data for GitHub
+const bio_dictionary = new Dictionary();
+scanLines('bios.txt', (line) =>
 {
-  const bio_dictionary = new Dictionary();
-  scanLines('../../bios.txt', (line) =>
+  const bio = line.toString('ascii')
+  if (bio.length <=1)
   {
-    const bio = line.toString('ascii')
-    if (bio.length <=1)
-    {
-      return;
-    }
-    bio_dictionary.addWholeEntryToDictionary(bio)
-  })
-  exposeStringEndpoint('/randombio', () => bio_dictionary.buildRandom())
-}
-
+    return;
+  }
+  bio_dictionary.addWholeEntryToDictionary(bio)
+})
+exposeStringEndpoint('/randombio', () => bio_dictionary.buildRandom())
 // --
 
 // -- /randomtagline
@@ -73,19 +115,17 @@ exposeStringEndpoint('/randomtagline', () => tagline_dictionary.buildRandom())
 // --
 
 // -- /randomsong
-if (!is_prod) // too much data for GitHub
+const song_dictionary = new FirstTokenDictionary();
+scanLines('unique_tracks.txt', (line) =>
 {
-  const song_dictionary = new FirstTokenDictionary();
-  scanLines('../../data/unique_tracks.txt', (line) =>
+  const separated = line.split('<SEP>')
+  if (separated.length >= 4)
   {
-    const withsep = line.toString('utf-8')
-    const separated = withsep.split('<SEP>')
     const artist = separated[2]
     const song = separated[3]
     song_dictionary.addToDictionary(song, artist)
-  })
-  exposeStringEndpoint('/randomsong', () => song_dictionary.buildRandom())
-}
+  }
+})
+exposeStringEndpoint('/randomsong', () => song_dictionary.buildRandom())
 // --
-
 // ----
