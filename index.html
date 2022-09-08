@@ -1,27 +1,89 @@
 <!DOCTYPE html>
+
 <html lang="en">
+	
     <head>
+	    
         <meta charset="UTF-8">
+        
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
         <title>Guess Again</title>
-
-        <script type="text/javascript">
-
-	        function new_tagline() {
-
-	        	document.getElementById("content").innerHTML='<object type="text/html" data="http://localhost:5000/randomtagline" ></object>';
-
-	        }
-
-	    </script>
-
+        
+        <style>
+	        
+	    body {
+			height: 100vh;
+			width: 100vh;     
+	    }
+	        
+		.main-content {
+			position: absolute;
+			top: 50%;
+			left: 50%;
+			width: 80%;
+			transform: translateY(-50%)translateX(-50%);
+			z-index: 1;
+			text-align: center;
+				
+		}
+		
+		#content {
+			display: block;
+			margin-bottom: 1rem;
+		}
+		
+		#refresh {
+			display: inline-block;
+		}
+		
+		</style>
+        
     </head>
+    
     <body>
 
-        <div id="content"></div>
+		<div class="main-content">
 
-        <button onClick="new_tagline();">Reload</button>
+    		<span id="content"></span>
 
-    </body>
+			<button id="refresh">Load a tagline</button>
+        
+		</div>
+
+		<script src="https://code.jquery.com/jquery-3.6.1.min.js" integrity="sha256-o88AwQnZB+VDvE9tvIXrMQaPlFFSUTR+nldQm1LuPXQ=" crossorigin="anonymous"></script>
+		
+		<script type="text/javascript">
+	        
+	        function get_tagline() {
+		        
+		        $.ajax({ url: 'http://localhost:5000/randomtagline', success: function(data) { 
+						
+					console.log(data); 
+					
+					jQuery('#content').html(data);
+					
+					jQuery('#refresh').text('Reload');
+						
+				}});
+		        
+	        }
+	        
+	        jQuery(document).ready(function($) {
+		        
+		        jQuery('#refresh').click(function() {        
+				
+					
+					get_tagline();
+				
+				
+				});		
+			
+			});
+
+		</script>
+	
+	 </body>
+	 
 </html>
 
